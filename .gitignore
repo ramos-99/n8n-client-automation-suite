@@ -6,3 +6,4 @@
 
 # Docker
 docker-compose.override.yml
+n8n_data/

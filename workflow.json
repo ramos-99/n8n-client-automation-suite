@@ -1,0 +1,312 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cdead7ac-27ca-4815-a855-2e00a81ec5d0",
+              "name": "From",
+              "value": "={{ $json.From }}",
+              "type": "string"
+            },
+            {
+              "id": "e900bcc7-6e50-4250-ac4a-f9d21279926e",
+              "name": "To",
+              "value": "={{ $json.To }}",
+              "type": "string"
+            },
+            {
+              "id": "d001695d-e809-43de-b2dd-b028607ec6a0",
+              "name": "Date",
+              "value": "={{ DateTime.fromMillis(Number($json.internalDate)).setZone('Europe/Lisbon').toFormat('dd/MM/yyyy HH:mm') }}",
+              "type": "string"
+            },
+            {
+              "id": "a10ede94-e252-4f1c-93cf-78143746b0c0",
+              "name": "Subject",
+              "value": "={{ $json.Subject }}",
+              "type": "string"
+            },
+            {
+              "id": "3979d3fd-5a7d-4293-bd07-8d56ef86c61d",
+              "name": "Content",
+              "value": "={{ $json.snippet }}",
+              "type": "string"
+            },
+            {
+              "id": "25191bbd-f5f7-479d-9932-2a3236d4ab80",
+              "name": "ForwardedMailDate",
+              "value": "={{\n  (() => {\n    // CONFIGURAÇÃO\n    const fusoHorario = 'Europe/Lisbon'; \n    \n    // NOVO: Em modo Raw, usamos o 'snippet' porque o body é complexo de descodificar\n    // O snippet contém o texto inicial do email (onde está o \"Forwarded message\")\n    const corpo = $json.snippet || \"\"; \n    \n    // NOVO: Em modo Raw, confiamos 100% no internalDate (timestamp)\n    // Se não houver internalDate, tentamos buscar a header Date manualmente (mais raro precisar)\n    const dataSistema = $json.internalDate;\n\n    // --- LÓGICA DE EXTRAÇÃO IGUAL ---\n    if (/Forwarded message|Mensagem encaminhada|Início da mensagem reencaminhada/i.test(corpo)) {\n      \n      const regex = /(?:Date|Data|Enviada|Sent):\\s*([\\s\\S]*?)\\s+(?:Subject|Assunto):/i;\n      const match = corpo.match(regex);\n\n      if (match && match[1]) {\n        let textoData = match[1].replace(/(\\r\\n|\\n|\\r)/gm, \" \").trim();\n        \n        try {\n          return DateTime.fromFormat(textoData, \"EEE, MMM d, yyyy 'at' h:mm a\", { locale: 'en', zone: fusoHorario })\n                         .toFormat('dd/MM/yyyy HH:mm');\n        } catch (e) {}\n\n        try {\n           return DateTime.fromFormat(textoData, \"d 'de' MMMM 'de' yyyy 'às' HH:mm\", { locale: 'pt', zone: fusoHorario })\n                          .toFormat('dd/MM/yyyy HH:mm');\n        } catch (e) {}\n      }\n    }\n\n    return null;\n  })()\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        848,
+        -64
+      ],
+      "id": "11c042c9-1c56-4fa6-86d1-32e2bb44664b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}",
+        "simple": false,
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -48,
+        0
+      ],
+      "id": "59a1286a-0fe6-4e2e-9cf7-aa9313be3a24",
+      "name": "Get a message",
+      "webhookId": "ecfa5eba-bf34-414a-a951-12fde0edc8bb",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bkyIiGIrThI5TG3l",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -256,
+        0
+      ],
+      "id": "cb24c9d6-fc21-4037-bf1c-c8d66c67bff4",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bkyIiGIrThI5TG3l",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- CONFIGURAÇÃO ---\nconst fusoHorario = 'Europe/Lisbon'; \n// --------------------\n\nreturn $input.all().map(item => {\n  const json = item.json;\n  \n  // PREVENÇÃO: Garante que lê o texto mesmo se vier em lugares diferentes\n  // Em Raw mode, geralmente está em json.text ou json.html\n  const corpoTexto = json.text || json.snippet || \"\";\n  const corpoHtml = json.html || json.text || \"\";\n\n  // ======================================================\n  // 1. DATA DE RECEÇÃO (Com verificação de segurança)\n  // ======================================================\n  let dataRececao = \"Data não encontrada\"; \n\n  if (json.internalDate && !isNaN(Number(json.internalDate))) {\n    const dt = DateTime.fromMillis(Number(json.internalDate));\n    if (dt.isValid) {\n      dataRececao = dt.setZone(fusoHorario).toFormat('dd/MM/yyyy HH:mm');\n    }\n  }\n\n  // Fallback: Se falhar, tenta ler do header\n  if (dataRececao === \"Data não encontrada\" && json.headers && json.headers.date) {\n    const dt = DateTime.fromRFC2822(json.headers.date);\n    if (dt.isValid) {\n      dataRececao = dt.setZone(fusoHorario).toFormat('dd/MM/yyyy HH:mm');\n    } else {\n      dataRececao = json.headers.date; \n    }\n  }\n\n  // ======================================================\n  // 2. DATA ORIGINAL (Se for Forward)\n  // ======================================================\n  let dataOriginal = null;\n  \n  // Verifica no corpo do texto se é forward\n  if (/Forwarded message|Mensagem encaminhada|Início da mensagem reencaminhada/i.test(corpoTexto)) {\n      const regex = /(?:Date|Data|Enviada|Sent):\\s*([\\s\\S]*?)\\s+(?:Subject|Assunto):/i;\n      const match = corpoTexto.match(regex);\n\n      if (match && match[1]) {\n        let textoData = match[1].replace(/(\\r\\n|\\n|\\r)/gm, \" \").trim();\n        \n        let dtForward = DateTime.fromFormat(textoData, \"EEE, MMM d, yyyy 'at' h:mm a\", { locale: 'en', zone: fusoHorario });\n        \n        if (!dtForward.isValid) {\n           dtForward = DateTime.fromFormat(textoData, \"d 'de' MMMM 'de' yyyy 'às' HH:mm\", { locale: 'pt', zone: fusoHorario });\n        }\n\n        if (dtForward.isValid) {\n          dataOriginal = dtForward.toFormat('dd/MM/yyyy HH:mm');\n        }\n      }\n  }\n\n  // ======================================================\n  // 3. LIMPEZA E SAÍDA FINAL\n  // ======================================================\n  const limparCampo = (campo) => {\n      if (!campo) return \"Desconhecido\";\n      if (typeof campo === 'object') return campo.text || campo.address || JSON.stringify(campo);\n      return campo;\n  };\n\n  return {\n    json: {\n      assunto: json.subject,\n      de: limparCampo(json.from),\n      para: limparCampo(json.to),\n      conteudo_texto: corpoTexto,\n      // ------------------------------------------\n\n      data_rececao: dataRececao,\n      data_forwarded: dataOriginal,\n      is_forwarded: !!dataOriginal\n    },\n    // Mantém os anexos\n    binary: item.binary \n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        -192
+      ],
+      "id": "bf87ebd4-0e28-447e-a79e-add5a885ab69",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.microsoftOneDrive",
+      "typeVersion": 1,
+      "position": [
+        928,
+        -208
+      ],
+      "id": "c941c2dd-ecdf-4eb1-bf5a-3a0836f7ac9d",
+      "name": "Upload a file1",
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "hbXrELzpxNNGmdlU",
+          "name": "Microsoft Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- CONFIGURAÇÃO ---\nconst fusoHorario = 'Europe/Lisbon'; \n// --------------------\n\n// NOTA: DateTime já é global no n8n.\n\nreturn $input.all().map(item => {\n  const json = item.json;\n  \n  // 1. Extrair Conteúdos\n  let corpoHtml = json.html || json.text || \"<h1>Email sem conteudo HTML</h1>\";\n  const corpoTexto = json.text || json.snippet || \"\";\n  const assunto = json.subject || \"\";\n\n  // ======================================================\n  // 1.1 SUPER LIMPEZA: REMOVE BLOCO INTEIRO DE HEADERS\n  // ======================================================\n  // Lógica de Engenharia:\n  // 1. Encontra a linha separadora (----- Forwarded message -----)\n  // 2. Consome qualquer lixo/newlines logo a seguir.\n  // 3. Entra num GRUPO DE REPETIÇÃO ((?:...)*):\n  //    Continua a \"comer\" linhas ENQUANTO elas começarem por \"From:\", \"Date:\", \"To:\", etc.\n  //    Assim que encontrar uma linha que NÃO é um header (o corpo real), a regex para.\n  \n  const regexLimpezaTotal = /(-+|_+)\\s*(Forwarded message|Mensagem encaminhada|Início da mensagem reencaminhada).*?(\\r\\n|\\n|<br>)(?:(?:From|De|Date|Data|Subject|Assunto|To|Para|Sent|Enviada|Cc|Bcc):.*?(\\r\\n|\\n|<br>))*/gim;\n  \n  // Aplica a limpeza\n  corpoHtml = corpoHtml.replace(regexLimpezaTotal, \"\");\n\n  // Remove quebras de linha extra que tenham sobrado no topo\n  corpoHtml = corpoHtml.replace(/^\\s*(<br>\\s*)+/i, \"\");\n\n  // ======================================================\n  // 2. DATA DE RECEÇÃO\n  // ======================================================\n  let dataRececao = \"DataDesconhecida\"; \n\n  if (json.internalDate && !isNaN(Number(json.internalDate))) {\n    const dt = DateTime.fromMillis(Number(json.internalDate));\n    if (dt.isValid) dataRececao = dt.setZone(fusoHorario).toFormat('dd/MM/yyyy HH:mm');\n  }\n  \n  if (dataRececao === \"DataDesconhecida\" && json.headers && json.headers.date) {\n    let cleanDate = json.headers.date.replace(/^(Date|Data):\\s*/i, \"\").trim();\n    const dt = DateTime.fromRFC2822(cleanDate);\n    if (dt.isValid) dataRececao = dt.setZone(fusoHorario).toFormat('dd/MM/yyyy HH:mm');\n    else dataRececao = cleanDate; \n  }\n\n  // ======================================================\n  // 3. DATA ORIGINAL (Lógica de Forward)\n  // ======================================================\n  let dataOriginal = null;\n  const isSubjectForward = /^(Fwd|Enc|Tr|Reenc):/i.test(assunto);\n  const isBodyForward = /Forwarded message|Mensagem encaminhada|Início da mensagem reencaminhada/i.test(corpoTexto);\n\n  if (isSubjectForward || isBodyForward) {\n      // Procura a linha da Data no texto ORIGINAL (antes da limpeza)\n      let regex = /(?:Date|Data|Enviada|Sent):\\s*([^\\n\\r]*)/i;\n      let match = corpoTexto.match(regex);\n\n      if (match && match[1]) {\n        let textoData = match[1].trim();\n        textoData = textoData.split('Subject:')[0].trim(); \n\n        let dtForward = DateTime.fromFormat(textoData, \"EEE, d MMM yyyy HH:mm:ss Z\", { locale: 'en', zone: fusoHorario });\n        if (!dtForward.isValid) dtForward = DateTime.fromRFC2822(textoData);\n        if (!dtForward.isValid) dtForward = DateTime.fromFormat(textoData, \"EEE, MMM d, yyyy 'at' h:mm a\", { locale: 'en', zone: fusoHorario });\n        \n        if (!dtForward.isValid) {\n           dtForward = DateTime.fromFormat(textoData, \"d 'de' MMMM 'de' yyyy 'às' HH:mm\", { locale: 'pt', zone: fusoHorario });\n        }\n\n        if (dtForward.isValid) {\n          dataOriginal = dtForward.toFormat('dd/MM/yyyy HH:mm');\n        }\n      }\n  }\n\n  // ======================================================\n  // 4. SAÍDA\n  // ======================================================\n  const limparCampo = (campo) => {\n      if (!campo) return \"Desconhecido\";\n      if (typeof campo === 'object') return campo.text || campo.address || JSON.stringify(campo);\n      return campo;\n  };\n\n  return {\n    json: {\n      assunto: assunto,\n      de: limparCampo(json.from),\n      para: limparCampo(json.to),\n      data_rececao: dataRececao,\n      data_forwarded: dataOriginal,\n      e_forward: !!dataOriginal || isSubjectForward, \n      resumo: json.snippet\n    },\n    binary: {\n      ...item.binary,\n      index_html: {\n        data: Buffer.from(corpoHtml).toString('base64'),\n        mimeType: 'text/html',\n        fileName: 'index.html'\n      }\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        0
+      ],
+      "id": "11678dee-6a04-49e2-b464-b42f032b2b98",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.microsoftOneDrive",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -64
+      ],
+      "id": "4fedc52c-c996-495a-b913-35e0a5d6cd4d",
+      "name": "Upload a file",
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "hbXrELzpxNNGmdlU",
+          "name": "Microsoft Drive account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://gotenberg:3000/forms/chromium/convert/html",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "files",
+              "inputDataFieldName": "index_html"
+            },
+            {
+              "name": "printBackground",
+              "value": "true"
+            },
+            {
+              "name": "paperWidth",
+              "value": "8.27"
+            },
+            {
+              "name": "paperHeight",
+              "value": "11.7"
+            },
+            {
+              "name": "marginTop",
+              "value": "0"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        400,
+        128
+      ],
+      "id": "eb68159c-cd61-4e54-8289-ded3f805b086",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "fileName": "={{ $json.assunto }}.pdf",
+        "parentId": "projetos",
+        "binaryData": true
+      },
+      "type": "n8n-nodes-base.microsoftOneDrive",
+      "typeVersion": 1,
+      "position": [
+        608,
+        128
+      ],
+      "id": "d77fa1f8-6277-45ad-8163-92a794498c6c",
+      "name": "Upload a file2",
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "hbXrELzpxNNGmdlU",
+          "name": "Microsoft Drive account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get a message": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Upload a file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Upload a file",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload a file": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Upload a file2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7efac531-4743-4ea5-ac0d-a03f26749dd8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "281ae23d9332cf2d4d40e4216060a58207b58fcad86c83f251f611cb60f4f6f1"
+  },
+  "id": "80yWd6LRISvsM2Zs",
+  "tags": []
+}
