@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - N8N_ENCRYPTION_KEY=ASDGADFSDGSDHJHDHJ34adasdghARWQAWSADNANNeasDFASD@#
+      - N8N_USER_FOLDER=/home/node/.n8n
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    container_name: gotenberg
+    restart: always
+    # Não precisas de expor portas (ports) se o n8n falar com ele pela rede interna
+    # Mas podes expor para testar no browser do Windows se quiseres:
+    # ports:
+    #   - "3000:3000"

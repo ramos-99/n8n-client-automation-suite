@@ -1,0 +1,8 @@
+# N8N Files
+/nodes
+/credentials
+.n8n
+.env
+
+# Docker
+docker-compose.override.yml
