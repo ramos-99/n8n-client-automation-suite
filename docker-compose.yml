@@ -1,24 +1,38 @@
-version: "3.8"
+version: '3.8'
 
 services:
   n8n:
     image: n8nio/n8n:latest
+    container_name: n8n_client_automation
     restart: unless-stopped
     ports:
       - "5678:5678"
     environment:
+      # Configurações Básicas
       - N8N_HOST=${N8N_HOST}
       - N8N_PORT=${N8N_PORT}
       - N8N_PROTOCOL=${N8N_PROTOCOL}
       - NODE_ENV=${NODE_ENV}
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
       - N8N_USER_FOLDER=${N8N_USER_FOLDER}
+      
+      # --- CREDENCIAIS INJETADAS (O Segredo da Automação) ---
+      # Estas variáveis leem os valores do teu ficheiro .env
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+    
     volumes:
       - ./n8n_data:/home/node/.n8n
-    # O comando abaixo ajuda a corrigir permissões se tiveres problemas no WSL
-    # command: /bin/sh -c "n8n start"
+    
+    depends_on:
+      - gotenberg
 
   gotenberg:
     image: gotenberg/gotenberg:8
     container_name: gotenberg
     restart: always
+    ports:
+      - "3000:3000"
