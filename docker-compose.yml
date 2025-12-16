@@ -16,8 +16,7 @@ services:
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
       - N8N_USER_FOLDER=${N8N_USER_FOLDER}
       
-      # --- CREDENCIAIS INJETADAS (O Segredo da Automação) ---
-      # Estas variáveis leem os valores do teu ficheiro .env
+      # --- CREDENCIAIS INJETADAS ---
       - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
       - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
       - AZURE_TENANT_ID=${AZURE_TENANT_ID}
@@ -29,6 +28,7 @@ services:
     
     depends_on:
       - gotenberg
+      - ollama
 
   gotenberg:
     image: gotenberg/gotenberg:8
@@ -36,3 +36,16 @@ services:
     restart: always
     ports:
       - "3000:3000"
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+# Isto cria o espaço para guardar a IA (Llama) permanentemente
+volumes:
+  ollama_data:
