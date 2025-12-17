@@ -119,9 +119,9 @@ You will notice some nodes with red warning signs. You need to authenticate them
 
 To tell the system where to save files in your OneDrive:
 
-1. Locate the node named **"Configurar Pasta"** (It is a "Set" node at the very beginning of the flow).
+1. Locate the node named **"INSERT FOLDER NAME"**.
 2. Click to edit it.
-3. Change the value `Documentos Importados` to the **exact name** of the folder you want to use in your OneDrive.
+3. Change the value `projetos` to the **exact name** of the folder you want to use in your OneDrive.
 
 > The system will automatically search for this folder's ID during execution.
 
