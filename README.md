@@ -12,7 +12,9 @@ The system automatically cleans email content, uses **Local AI (Llama 3.2)** to 
 
 * **📧 Email Trigger:** Initiates instantly upon receiving emails via Gmail API.
 * **🧠 AI-Powered Renaming:** Uses a local Large Language Model (Ollama/Llama 3.2) to analyze email content and generate smart, readable filenames (e.g., `Invoice_Vodafone_Oct.pdf`).
-* **📂 Dynamic Folder Routing:** Automatically searches for a specific folder ID in OneDrive based on a user-defined name.
+* **🧠 Smart Context & Fuzzy Matching:**
+  * **ID Extraction:** Automatically extracts Project IDs from email subjects (e.g., `357 - Project X`) to locate the correct root folder.
+  * **Typo Correction:** Uses the **Levenshtein Distance algorithm** (Fuzzy Matching) to route files to the correct Entity folder, automatically correcting human errors (e.g., routing "Microft" → "Microsoft").
 * **📄 PDF Conversion:** High-fidelity conversion of HTML emails to PDF using Gotenberg.
 * **☁️ Unified Archiving:** Uploads both the generated PDF and original attachments to the correct OneDrive destination.
 
@@ -115,15 +117,15 @@ You will notice some nodes with red warning signs. You need to authenticate them
 | **Ollama Model** | Set the Base URL to `http://ollama:11434` (No auth required). |
 | **OneDrive Nodes** | Select "Create New Credential" → OAuth2 → Use your Azure credentials. |
 
-### 4. ⚠️ Set Your Target Folder (IMPORTANT)
+### 4. ⚠️ Usage Convention (IMPORTANT)
 
-To tell the system where to save files in your OneDrive:
+This workflow is designed to process standardized emails. Ensure incoming emails follow this **Subject Line format:**
 
-1. Locate the node named **"INSERT FOLDER NAME"**.
-2. Click to edit it.
-3. Change the value `projetos` to the **exact name** of the folder you want to use in your OneDrive.
+| Format | Example |
+|:-------|:--------|
+| `ID - Project Name` | `357 - Portas da Madeira` |
 
-> The system will automatically search for this folder's ID during execution.
+> **How it works:** The system automatically extracts the ID (e.g., `357`) and uses the **Microsoft Graph API** to locate the corresponding project root folder in OneDrive. No manual node configuration is required.
 
 ---
 
@@ -146,6 +148,30 @@ To tell the system where to save files in your OneDrive:
 | **Gotenberg** | A stateless API for converting HTML/Markdown to PDF. |
 | **Ollama** | Runs the Large Language Model (Llama 3.2) locally for privacy-focused text analysis. |
 | **Docker** | Encapsulates the entire environment for easy deployment. |
+
+### Workflow Diagram
+
+```mermaid
+graph TD
+    A["📩 Client Email"] -->|Gmail API| B(n8n Webhook)
+    B --> C{"🔍 Extract Data"}
+    C -->|"Subject: 357 - Project"| D["🆔 Get Project ID"]
+    C -->|Body HTML| E["📄 Gotenberg PDF"]
+    C -->|AI Analysis| F["🤖 Ollama / Llama3"]
+    
+    F -->|Clean Filename| G[Rename Files]
+    
+    subgraph "Smart Routing Logic"
+    D --> H[List Entities in OneDrive]
+    H --> I{"Fuzzy Match Algorithm"}
+    I -->|"Match > 75%"| J[Select Existing Folder]
+    I -->|No Match| K[Create New Folder]
+    end
+    
+    G --> L["📤 Upload PDF + Attachments"]
+    J --> L
+    L --> M["☁️ Microsoft OneDrive"]
+```
 
 ---
 
