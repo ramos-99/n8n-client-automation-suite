@@ -8,6 +8,9 @@ services:
     ports:
       - "5678:5678"
     environment:
+      # --- A LINHA QUE FALTAVA (DESBLOQUEIA AS VARIÁVEIS) ---
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      
       # Configurações Básicas
       - N8N_HOST=${N8N_HOST}
       - N8N_PORT=${N8N_PORT}
@@ -46,6 +49,5 @@ services:
     volumes:
       - ollama_data:/root/.ollama
 
-# Isto cria o espaço para guardar a IA (Llama) permanentemente
 volumes:
   ollama_data:

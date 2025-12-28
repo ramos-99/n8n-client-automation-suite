@@ -1,10 +1,32 @@
-# N8N Files
-/nodes
-/credentials
-.n8n
-.env
+# ===================================
+# N8N Client Automation Suite
+# ===================================
 
-# Docker
-docker-compose.override.yml
-n8n_data/
+# --- SENSITIVE DATA (CRITICAL) ---
 .env
+n8n_data/
+onedrive_auto.json
+onedrive_auto.jsonZone.Identifier
+
+# --- N8N Internal ---
+.n8n/
+nodes/
+credentials/
+
+# --- Docker ---
+docker-compose.override.yml
+*.log
+
+# --- System Files ---
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# --- Git ---
+.git/
+
+# --- IDE ---
+.vscode/
+.idea/
+*.code-workspace
