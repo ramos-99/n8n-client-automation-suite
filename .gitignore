@@ -5,8 +5,6 @@
 # --- SENSITIVE DATA (CRITICAL) ---
 .env
 n8n_data/
-onedrive_auto.json
-onedrive_auto.jsonZone.Identifier
 
 # --- N8N Internal ---
 .n8n/
