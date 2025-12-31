@@ -11,14 +11,14 @@
       "type": "n8n-nodes-base.microsoftOneDrive",
       "typeVersion": 1,
       "position": [
-        1904,
-        48
+        2000,
+        352
       ],
-      "id": "b1e531aa-3a3a-40af-b299-6786d8807a0a",
+      "id": "afd7fb84-9f0d-4cf9-a023-2184885d95cb",
       "name": "Mail in pdf upload",
       "credentials": {
         "microsoftOneDriveOAuth2Api": {
-          "id": "V4Xw6f3Qvzpfww4l",
+          "id": "1Waf1fVLUg7lO3Mh",
           "name": "Microsoft Drive account"
         }
       }
@@ -35,15 +35,15 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        -336,
-        48
+        -448,
+        352
       ],
-      "id": "7d0cec02-fb6d-4c5b-bf71-ea413c8468a0",
+      "id": "f2820144-7279-4938-9d71-499fc2924c47",
       "name": "Get a message1",
       "webhookId": "ecfa5eba-bf34-414a-a951-12fde0edc8bb",
       "credentials": {
         "gmailOAuth2": {
-          "id": "RGdS9ujz73kK5ds6",
+          "id": "EPHE75hEclWyGsta",
           "name": "Gmail account"
         }
       }
@@ -62,14 +62,14 @@
       "type": "n8n-nodes-base.gmailTrigger",
       "typeVersion": 1.3,
       "position": [
-        -576,
-        48
+        -688,
+        352
       ],
-      "id": "be440b19-db2c-43ac-b81b-838247e9a881",
+      "id": "a68d59fd-2423-486d-8b51-f9e8513f803c",
       "name": "Gmail Trigger1",
       "credentials": {
         "gmailOAuth2": {
-          "id": "RGdS9ujz73kK5ds6",
+          "id": "EPHE75hEclWyGsta",
           "name": "Gmail account"
         }
       }
@@ -116,43 +116,30 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        208,
-        -96
+        304,
+        208
       ],
-      "id": "dce1b3fc-03e8-4039-8e16-1331b167d101",
+      "id": "8006aadd-4079-471c-913e-d230b7850f3d",
       "name": "HTTP Request1"
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "=### SYSTEM INSTRUCTION ###\nVocê é um PARSER DE DADOS (API). A sua única função é receber texto não estruturado e devolver um Objeto JSON válido.\nNÃO fale. NÃO explique. NÃO use Markdown (sem ```json). NÃO inclua introduções ou conclusões.\nSe falhar a extração de algum campo, use valores genéricos (\"000\", \"Desconhecido\").\n\n### REGRAS DE EXTRAÇÃO ###\n1. id_projeto: Procure no ASSUNTO por 3 dígitos no início (ex: \"102 - Obra\"). Se não houver, devolva \"000\".\n2. nome_projeto: O texto a seguir aos dígitos no ASSUNTO. Limpe hífens.\n3. entidade: Quem enviou o email ou a empresa mencionada no corpo/assinatura.\n4. resumo_3_palavras: Um resumo muito curto do conteúdo (ex: Fatura_Material_Eletrico). Use underscores, sem espaços.\n\n### EXEMPLOS DE TREINO (Few-Shot) ###\nInput:\nAssunto: \"102 - Remodelação Lisboa\"\nCorpo: \"Bom dia, segue o orçamento da Tintas Robbialac. Att, João.\"\nDe: \"joao@robbialac.pt\"\nOutput:\n{ \"id_projeto\": \"102\", \"nome_projeto\": \"Remodelacao Lisboa\", \"entidade\": \"Tintas Robbialac\", \"resumo_3_palavras\": \"Orcamento_Tintas\" }\n\nInput:\nAssunto: \"Urgente - Fuga de Água\"\nCorpo: \"Detetámos uma fuga na cave.\"\nDe: \"cliente@gmail.com\"\nOutput:\n{ \"id_projeto\": \"000\", \"nome_projeto\": \"Urgente Fuga\", \"entidade\": \"Cliente\", \"resumo_3_palavras\": \"Alerta_Fuga_Agua\" }\n\n### DADOS PARA PROCESSAR AGORA ###\nAssunto: \"\"\"{{ $json.assunto }}\"\"\"\nCorpo: \"\"\"{{ $json.corpoTexto }}\"\"\"\nDe: \"\"\"{{ $json.from }}\"\"\"\n\n### SEU OUTPUT JSON:",
-        "batching": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.chainLlm",
-      "typeVersion": 1.7,
-      "position": [
-        128,
-        208
-      ],
-      "id": "0cb083d5-cbf7-4da1-8491-6936323e8044",
-      "name": "Basic LLM Chain1"
-    },
-    {
-      "parameters": {
         "model": "=llama3.2",
-        "options": {}
+        "options": {
+          "format": "json"
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        144,
-        416
+        240,
+        720
       ],
-      "id": "60f79e83-2a04-49eb-b53d-65b55cebd375",
+      "id": "dea4ed5f-702c-4624-8cdb-2bb0b58f7bea",
       "name": "Ollama Chat Model1",
       "credentials": {
         "ollamaApi": {
-          "id": "JHLjlCeNs3UuWZoW",
+          "id": "rIi2NnYqqBrCxyVL",
           "name": "Ollama account"
         }
       }
@@ -164,25 +151,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        704,
-        48
+        800,
+        352
       ],
-      "id": "f0e0970b-54b0-4775-9b30-81d252afc7bf",
+      "id": "ecce8e25-27a1-4c18-b59e-9aa8d95a1a21",
       "name": "Rename pdf1"
-    },
-    {
-      "parameters": {
-        "jsCode": "const results = [];\nconst items = $input.all();\n\nfor (const item of items) {\n  // Se não houver ficheiros binários, passa à frente\n  if (!item.binary) continue;\n\n  const binaries = item.binary;\n\n  // Percorre todos os ficheiros (attachment_0, attachment_1, index_html...)\n  for (const key in binaries) {\n    \n    // ⚠️ O TRUQUE: Ignoramos o 'index_html' (que é para o PDF)\n    // e processamos apenas os outros (os anexos originais)\n    if (key !== 'index_html') {\n       \n       results.push({\n         json: {\n           // Guardamos info útil\n           folder_id: item.json.parentReference.id,\n           nome_original: binaries[key].fileName\n         },\n         binary: {\n           // Colocamos o ficheiro na gaveta 'data' (padrão do n8n)\n           data: binaries[key]\n         }\n       });\n    }\n  }\n}\n\nreturn results;"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        112,
-        -304
-      ],
-      "id": "63d5c13b-db7d-40e7-9804-81912775603c",
-      "name": "Separate files1",
-      "disabled": true
     },
     {
       "parameters": {
@@ -191,25 +164,26 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -80,
-        48
+        -192,
+        352
       ],
-      "id": "b309b5cf-08c7-42e2-902a-53c44935618d",
+      "id": "d19d4dc6-9306-4f12-bc81-4b959759b502",
       "name": "Cleanup Mail1"
     },
     {
       "parameters": {
         "mode": "combine",
         "combineBy": "combineByPosition",
+        "numberInputs": 3,
         "options": {}
       },
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        496,
-        48
+        592,
+        352
       ],
-      "id": "92db189f-1a84-4c16-b9cc-3955c8983aae",
+      "id": "0dc8cdea-e31f-4f78-ab3f-9040de7d13ce",
       "name": "Merge2"
     },
     {
@@ -222,19 +196,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        864,
-        48
+        960,
+        352
       ],
-      "id": "120bb605-b6df-4c6b-97ad-04b1b640de76",
+      "id": "95f0c8f7-0272-463e-a2e6-f78b27746494",
       "name": "HTTP Request",
       "credentials": {
         "microsoftOneDriveOAuth2Api": {
-          "id": "V4Xw6f3Qvzpfww4l",
+          "id": "1Waf1fVLUg7lO3Mh",
           "name": "Microsoft Drive account"
-        },
-        "oAuth2Api": {
-          "id": "A1nW5HGiqqsBIZjY",
-          "name": "Unnamed credential"
         }
       }
     },
@@ -245,10 +215,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1056,
-        48
+        1152,
+        352
       ],
-      "id": "f0e4d845-603c-445f-a027-a1377f33e15d",
+      "id": "8197b1c2-9490-4f8b-975c-639550af94a1",
       "name": "Code in JavaScript"
     },
     {
@@ -261,15 +231,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        1264,
-        48
+        1360,
+        352
       ],
-      "id": "ff56f662-af3f-40da-89a6-a694a37371d7",
+      "id": "d66b47bd-d9c0-4dc7-8679-5d2420a775c6",
       "name": "HTTP Request2",
       "alwaysOutputData": true,
       "credentials": {
         "microsoftOneDriveOAuth2Api": {
-          "id": "V4Xw6f3Qvzpfww4l",
+          "id": "1Waf1fVLUg7lO3Mh",
           "name": "Microsoft Drive account"
         }
       }
@@ -281,10 +251,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1472,
-        48
+        1568,
+        352
       ],
-      "id": "ed12e32c-b1ba-4711-92a6-52d71ba68bc2",
+      "id": "8dbc675e-a2b0-495f-a845-c8c20cd5cfb0",
       "name": "Code in JavaScript1"
     },
     {
@@ -294,11 +264,60 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1680,
-        48
+        1776,
+        352
       ],
-      "id": "598d12a0-be22-48aa-baea-dacf50656075",
+      "id": "bf098290-813f-4524-9e44-18d40b7c8f88",
       "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=### ROLE ###\nYou are a high-precision DATA EXTRACTION API. Your only job is to extract two specific fields from an email and return a valid JSON object. \n\n### RULES ###\n1. id_projeto: Look for exactly 3 consecutive digits (e.g., 357). Priority 1: The Subject line. Priority 2: The first two lines of the Body. If not found, use \"000\".\n2. entidade: Identify the external company or person. Priority 1: Look for \"entidade: [NOME]\". Priority 2: Look for the company name in the signature or \"De:\". If not found, use \"Desconhecido\".\n\n### OUTPUT CONSTRAINTS ###\n- NO prose. NO explanations. NO conversational filler.\n- NO Markdown formatting (do NOT use ```json).\n- ALWAYS use double quotes for both keys and values.\n- RETURN ONLY this structure: {\"id_projeto\": \"string\", \"entidade\": \"string\"}\n\n### EXAMPLES ###\nInput:\nSubject: \"357 - Invoice\"\nBody: \"Hi, please see attached. Regards, Vodafone Team.\"\nOutput:\n{\"id_projeto\": \"357\", \"entidade\": \"Vodafone\"}\n\nInput:\nSubject: \"Re: Meeting\"\nBody: \"321 - Let's discuss the Porto project. Best, Maria (Sonae).\"\nOutput:\n{\"id_projeto\": \"321\", \"entidade\": \"Sonae\"}\n\n### DATA TO PROCESS ###\nSubject: \"\"\"{{ $json.assunto }}\"\"\"\nBody: \"\"\"{{ $json.corpoTexto }}\"\"\"\nSender: \"\"\"{{ $json.from.text }}\"\"\"\n\n### FINAL JSON OUTPUT:",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        224,
+        400
+      ],
+      "id": "6cfad6d2-f4a5-41c8-ada7-024583d33536",
+      "name": "ID projeto e entidade"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=### ROLE\nYou are a cold, emotionless Data Extraction Engine. You do not explain. You do not write code. You only output valid JSON arrays.\n\n### TASK\nAnalyze a forwarded email to determine the archiving direction (env_rec).\n\n### INPUT DATA\n- Forwarder Email: {{ $json.from.value[0].address }}\n- Email Body: {{ $json.corpoTexto }}\n\n### STRICT LOGIC\n1. Search the \"Email Body\" for the most recent \"Forwarded message\" header.\n2. Identify the address following \"De:\" or \"From:\" within that header (the Original Sender). Make sure not to choose an adress following \"To:\" or \"Para:\".\nCOMPARE the \"Forwarder Email\" with the \"Original Sender\" :\n   - IF (Forwarder Email == Original Sender) -> Output: \"env\"\n   - IF (Forwarder Email != Original Sender) -> Output: \"rec\"\n\n### OUTPUT RULE\n- Output ONLY the JSON array. \n- NO Markdown code blocks (no ```).\n- NO conversational text.\n- NO Python scripts.\n\n### REFERENCE EXAMPLES\nInput: \n- Forwarder: user@test.com\n- Body: \"...Forwarded message... From: user@test.com...\"\nOutput: [{\"env_rec\": \"env\"}]\n\nInput:\n- Forwarder: client@work.com\n- Body: \"...Forwarded message... De: stranger@other.com...\"\nOutput: [{\"env_rec\": \"rec\"}]\n\n### FINAL INSTRUCTION\nProcess the provided INPUT DATA now and return only the JSON.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.8,
+      "position": [
+        192,
+        896
+      ],
+      "id": "34406ea0-40a5-4e64-9b84-6675f1b3a381",
+      "name": "Env/Rec"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        128,
+        1104
+      ],
+      "id": "d33a6288-e1fe-49b0-afd8-8db412d27ef5",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "rIi2NnYqqBrCxyVL",
+          "name": "Ollama account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -336,22 +355,11 @@
         ]
       ]
     },
-    "Basic LLM Chain1": {
-      "main": [
-        [
-          {
-            "node": "Merge2",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
     "Ollama Chat Model1": {
       "ai_languageModel": [
         [
           {
-            "node": "Basic LLM Chain1",
+            "node": "ID projeto e entidade",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -369,26 +377,21 @@
         ]
       ]
     },
-    "Separate files1": {
-      "main": [
-        []
-      ]
-    },
     "Cleanup Mail1": {
       "main": [
         [
-          {
-            "node": "Separate files1",
-            "type": "main",
-            "index": 0
-          },
           {
             "node": "HTTP Request1",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Basic LLM Chain1",
+            "node": "Env/Rec",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ID projeto e entidade",
             "type": "main",
             "index": 0
           }
@@ -404,11 +407,6 @@
             "index": 0
           }
         ]
-      ]
-    },
-    "Mail in pdf upload": {
-      "main": [
-        []
       ]
     },
     "HTTP Request": {
@@ -465,6 +463,39 @@
           }
         ]
       ]
+    },
+    "ID projeto e entidade": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Env/Rec": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Env/Rec",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -472,11 +503,11 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "1e584366-3942-4fef-8304-997df4c5532d",
+  "versionId": "fab66aa1-76f7-4dbf-89f4-15a24fa184b3",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f52df6f7e8d33c9bba620dff08be36a67b7d4d89cc385cb4945c4e1f60114e51"
   },
-  "id": "0zGE68ANcamVoupE",
+  "id": "7Cc3waFqG9TraQvA",
   "tags": []
 }
