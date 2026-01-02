@@ -1,0 +1,679 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "model": "=llama3.2",
+        "options": {
+          "format": "json"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        688
+      ],
+      "id": "dfba0fc1-9cb6-4470-8476-ef6745cde4ca",
+      "name": "Ollama Chat Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "rIi2NnYqqBrCxyVL",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1152,
+        400
+      ],
+      "id": "c4b0f778-9088-4204-9e90-8fb77f1900d9",
+      "name": "Novo Email",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "EPHE75hEclWyGsta",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}",
+        "simple": false,
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -576,
+        400
+      ],
+      "id": "5a0e3350-0a0c-41b5-ba27-7b872aa770b7",
+      "name": "Obter conteúdo",
+      "webhookId": "ecfa5eba-bf34-414a-a951-12fde0edc8bb",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "EPHE75hEclWyGsta",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- CONFIGURAÇÃO ---\nconst fusoHorario = 'Europe/Lisbon'; \n// --------------------\n\nreturn $input.all().map(item => {\n  const json = item.json;\n  \n  // 1. Obter Conteúdos Brutos\n  let corpoHtml = json.html || json.text || \"<h1>Email sem conteudo HTML</h1>\";\n  // Preferência ao texto plano para fazer regex limpo\n  const corpoTextoRaw = json.text || json.snippet || \"\"; \n  const assuntoOriginal = json.subject || \"\";\n\n  // --- 2. EXTRAÇÃO DE METADADOS DO FORWARD ---\n  \n  let remetenteOriginal = \"Desconhecido\";   // Quem enviou originalmente (From)\n  let destinatarioOriginal = \"Desconhecido\"; // Quem recebeu originalmente (To)\n  let textoOriginalSender = \"\";              // Para comparação interna\n\n  // A. Regex para apanhar o \"From:\"\n  const regexFindSender = /(?:Forwarded message|Mensagem encaminhada)[\\s\\S]*?(?:From|De):\\s*(.*?)(?:\\r|\\n|<br>)/i;\n  const matchSender = corpoTextoRaw.match(regexFindSender);\n\n  // B. Regex para apanhar o \"To:\" (NOVO!)\n  // Procura por \"To:\" ou \"Para:\" dentro do bloco e captura até mudar de linha\n  const regexFindReceiver = /(?:Forwarded message|Mensagem encaminhada)[\\s\\S]*?(?:To|Para):\\s*(.*?)(?:\\r|\\n|<br>)/i;\n  const matchReceiver = corpoTextoRaw.match(regexFindReceiver);\n\n  // Processar Remetente Original\n  if (matchSender && matchSender[1]) {\n      textoOriginalSender = matchSender[1].toLowerCase(); \n      remetenteOriginal = matchSender[1].trim(); // Ex: \"ramos <martimcr@gmail.com>\"\n  } else if (json.from) {\n      // Fallback: se não for forward\n      remetenteOriginal = `${json.from.value[0].name} <${json.from.value[0].address}>`;\n      textoOriginalSender = json.from.value[0].address.toLowerCase();\n  }\n\n  // Processar Destinatário Original (A PEÇA QUE FALTAVA)\n  if (matchReceiver && matchReceiver[1]) {\n      // Limpa tags HTML se por acaso vierem agarradas\n      destinatarioOriginal = matchReceiver[1].replace(/<[^>]*>/g, \"\").trim();\n  }\n\n  // --- 3. LÓGICA DE SENTIDO (ENV vs REC) ---\n  \n  // Quem está a fazer o forward AGORA?\n  const emailForwarder = json.from && json.from.value && json.from.value[0] \n      ? json.from.value[0].address.toLowerCase().trim() \n      : \"\";\n\n  let sentidoDetectado = \"REC\"; // Default\n\n  // Se quem enviou o original (martimcr) É O MESMO que está a dar forward agora (martimcr)...\n  // ...então é um email ENVIADO (ENV).\n  if (emailForwarder && textoOriginalSender.includes(emailForwarder)) {\n      sentidoDetectado = \"ENV\";\n  } else {\n      sentidoDetectado = \"REC\";\n  }\n\n  // --- 4. LIMPEZA DE HEADERS (Mantida) ---\n  const regexLimpezaTotal = /(-+|_+)\\s*(Forwarded message|Mensagem encaminhada|Início da mensagem reencaminhada).*?(\\r\\n|\\n|<br>)(?:(?:From|De|Date|Data|Subject|Assunto|To|Para|Sent|Enviada|Cc|Bcc):.*?(\\r\\n|\\n|<br>))*/gim;\n  \n  corpoHtml = corpoHtml.replace(regexLimpezaTotal, \"\").replace(/^\\s*(<br>\\s*)+/i, \"\");\n  const textoLimpoIA = corpoTextoRaw.replace(regexLimpezaTotal, \"\").trim();\n\n  // --- 5. ASSUNTO ---\n  const regexPrefixos = /^([\\[\\(]?(Fwd|FW|Enc|Tr|Reenc|Re)[\\]\\)]?:\\s*)+/i;\n  const assuntoLimpo = assuntoOriginal.replace(regexPrefixos, \"\").trim();\n\n  return {\n    json: {\n      assunto: assuntoLimpo,\n      corpoTexto: textoLimpoIA || corpoTextoRaw, \n      \n      // --- OS DADOS QUE QUERIAS ---\n      remetente_original_contexto: remetenteOriginal,\n      destinatario_original_contexto: destinatarioOriginal, // Aqui vai aparecer o triangulodepascal99!\n      sentido: sentidoDetectado,\n      \n      quem_fez_forward: emailForwarder,\n      from: json.from,\n      resumo: json.snippet\n    },\n    binary: {\n      ...item.binary,\n      index_html: {\n        data: Buffer.from(corpoHtml).toString('base64'),\n        mimeType: 'text/html',\n        fileName: 'index.html'\n      }\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        400
+      ],
+      "id": "2cf791fa-3e2d-4985-ad7e-21c9f939be56",
+      "name": "Limpar Headers"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a data extraction assistant. Extract id_projeto and entidade from the email below.\n\n## RULES FOR id_projeto\nFind a 1-3 digit number that represents a project ID. Look for patterns like:\n- \"Projeto 123\", \"Project 456\", \"Proj-789\"\n- \"#123\" or \"Contrato 456\"\n- \"PO-123\" or \"REF: 123\"\n- Numbers in subject after dash: \"Dados - 001\"\n\nIMPORTANT:\n- If number found, pad to 3 digits: 1→001, 57→057, 123→123\n- If number exceeds 999 (e.g. 12345), ignore it - use \"000\"\n- If no valid project number found, use \"000\"\n- Numbers like \"500 unidades\" are NOT project IDs\n\n## RULES FOR entidade\nFind the company/person responsible for the email. Check in order:\n\n1. SIGNATURE at end of body: company name before \"Portugal\", \"SA\", \"Lda\", \"S.A.\", \"S.L.\"\n2. FROM email domain: user@vodafone.pt → \"Vodafone\", user@pwc.pt → \"PwC\"\n3. CONTEXT in body: \"projeto da Nestlé\" → \"Nestlé\", \"Fatura para a Unilever\" → \"Unilever\"\n4. PERSONAL emails (@gmail.com, @hotmail.com): extract sender name from signature\n5. When multiple companies mentioned, prefer the one in signature or From domain\n\nIMPORTANT:\n- Remove suffixes: \"Vodafone Portugal\" → \"Vodafone\", \"Construções Silva Lda.\" → \"Construções Silva\"\n- Generic domains (gmail, hotmail, yahoo) mean look for name in signature\n- Only return \"Desconhecido\" if body is empty or truly no info exists\n\n## INPUT\nSubject: {{ $json.assunto }}\nBody: {{ $json.corpoTexto }}\nFrom: {{ $('Limpar Headers').first().json.from }}\n\n## OUTPUT\nReturn ONLY valid JSON, no markdown, no explanation:\n{\"id_projeto\":\"XXX\",\"entidade\":\"YYY\"}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -16,
+        448
+      ],
+      "id": "bf871274-8e54-40db-b3ec-5140a942147e",
+      "name": "Extrair ID projeto e entidade"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        880,
+        400
+      ],
+      "id": "9530116a-41ab-469b-96aa-e70bcdef2435",
+      "name": "Unir dados"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  const json = item.json;\n\n  // --- 1. LEITURA UNIFICADA (Triple Merge) ---\n  const sentido = json.sentido || \"REC\";\n  const entidade = json.entidade || \"Desconhecido\";\n  const idProjeto = json.id_projeto || \"000\";\n  const nomeProjeto = json.nome_projeto || \"Geral\";\n  const resumo = json.resumo_3_palavras || json.assunto || \"Doc\";\n\n  // --- 2. PREPARAR DADOS ---\n  const hoje = new Date();\n  const yyyy = hoje.getFullYear();\n  const mm = String(hoje.getMonth() + 1).padStart(2, '0');\n  const dd = String(hoje.getDate()).padStart(2, '0');\n  const dataPasta = `${yyyy}${mm}${dd}`;\n\n  const limpar = (txt) => String(txt || \"\").replace(/[\\/\\\\:*?\"<>|]/g, \"\").trim();\n  const nomePastaFinal = `${dataPasta}_${sentido}`;\n  const caminhoVirtual = `AL-P/${limpar(idProjeto)}-${limpar(nomeProjeto)}/Entidades/${limpar(entidade)}/${nomePastaFinal}`;\n\n  const nomeBase = resumo\n    .replace(/[^a-zA-Z0-9_ -]/g, \"\") \n    .replace(/\\s+/g, \"_\")\n    .substring(0, 60);\n\n  // --- 3. PROCESSAR BINÁRIOS ---\n  const novosBinarios = {};\n  \n  if (item.binary) {\n    let contadorAnexos = 1;\n    const keys = Object.keys(item.binary);\n    \n    for (const key of keys) {\n      const file = item.binary[key];\n      \n      // IGNORAR index_html - é o HTML do email, não um anexo real\n      if (key === 'index_html') continue;\n      \n      // A key 'data' é o PDF do email gerado pelo Gotenberg\n      if (key === 'data') {\n        novosBinarios['data'] = { ...file, fileName: `${nomeBase}.pdf` };\n      } \n      // Tudo o resto são anexos reais (attachment_0, attachment_1, etc.)\n      else {\n        const nomeOriginal = file.fileName || 'anexo';\n        const extensao = nomeOriginal.includes('.') ? nomeOriginal.split('.').pop() : 'bin';\n        novosBinarios[`anexo_${contadorAnexos}`] = { \n          ...file, \n          fileName: `${nomeBase}_anexo_${contadorAnexos}.${extensao}` \n        };\n        contadorAnexos++;\n      }\n    }\n  }\n\n  // --- OUTPUT FINAL ---\n  return {\n    json: {\n      status: \"Pronto\",\n      caminho_final: caminhoVirtual,\n      nome_ficheiro: `${nomeBase}.pdf`,\n      entidade: entidade,\n      sentido: sentido,\n      id_projeto: idProjeto\n    },\n    binary: novosBinarios\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        400
+      ],
+      "id": "4820ba26-ae69-460c-996b-78a445a758ab",
+      "name": "Formatar Metadados e encontrar caminho da pasta"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.microsoft.com/v1.0/me/drive/root:/AL-P:/children?$filter=startswith(name,'{{ $json.id_projeto }}')",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "microsoftOneDriveOAuth2Api",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1248,
+        400
+      ],
+      "id": "b7d67ad6-eafa-4503-8e23-7b6f70a1b94a",
+      "name": "Localizar Projeto",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "1Waf1fVLUg7lO3Mh",
+          "name": "Microsoft Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Obter o resultado da pesquisa do OneDrive\nconst resultadoPesquisa = items[0].json.value;\n\nif (!resultadoPesquisa || resultadoPesquisa.length === 0) {\n  throw new Error(\"ERRO: Projeto não encontrado (Lista vazia).\");\n}\n\n// 2. Apanhar a pasta real (ex: \"357-Portas da Madeira\")\nconst pastaProjeto = resultadoPesquisa[0];\n\n// 3. Recuperar os dados originais do \"Rename pdf1\"\nconst dadosOriginais = $('Formatar Metadados e encontrar caminho da pasta').first().json;\n\n// 4. SAÍDA SIMPLES: Apenas o ID e os dados originais\nreturn {\n  json: {\n    id_pasta_projeto: pastaProjeto.id,    // O ID que precisamos para o próximo passo\n    nome_real_projeto: pastaProjeto.name, // Só para confirmar\n    \n    // Passamos os dados da IA para o próximo nó usar\n    entidade_ia: dadosOriginais.entidade,\n    sentido: dadosOriginais.sentido,\n    data_pasta: dadosOriginais.data_pasta // (Se já tiveres calculado a data antes)\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        400
+      ],
+      "id": "9b8b34db-e0af-4612-9362-e6d5cef71eb6",
+      "name": "Validar projeto"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.microsoft.com/v1.0/me/drive/items/{{ $json.id_pasta_projeto }}:/Entidades:/children",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "microsoftOneDriveOAuth2Api",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1648,
+        400
+      ],
+      "id": "3e8cf3d9-4665-46ed-a9e0-ecdb68c99a46",
+      "name": "Listar entidades",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "1Waf1fVLUg7lO3Mh",
+          "name": "Microsoft Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- FUNÇÕES DE COMPARAÇÃO (Mantive as tuas, estão ótimas) ---\nfunction similarity(s1, s2) {\n  var longer = s1, shorter = s2;\n  if (s1.length < s2.length) { longer = s2; shorter = s1; }\n  var longerLength = longer.length;\n  if (longerLength == 0) return 1.0;\n  return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);\n}\n\nfunction editDistance(s1, s2) {\n  s1 = s1.toLowerCase(); s2 = s2.toLowerCase();\n  var costs = new Array();\n  for (var i = 0; i <= s1.length; i++) {\n    var lastValue = i;\n    for (var j = 0; j <= s2.length; j++) {\n      if (i == 0) costs[j] = j;\n      else {\n        if (j > 0) {\n          var newValue = costs[j - 1];\n          if (s1.charAt(i - 1) != s2.charAt(j - 1)) newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;\n          costs[j - 1] = lastValue;\n          lastValue = newValue;\n        }\n      }\n    }\n    if (i > 0) costs[s2.length] = lastValue;\n  }\n  return costs[s2.length];\n}\n\n// --- LÓGICA PRINCIPAL CORRIGIDA ---\n\n// 1. CORREÇÃO: Resgatar a lista de pastas do OneDrive (Input deste nó)\n// Usamos $input.first() em vez de items[0] para ser seguro\nconst inputOneDrive = $input.first().json;\n// O Graph API retorna um array dentro de 'value'\nconst pastasReais = inputOneDrive.value || []; \n\n// 2. CORREÇÃO: Resgatar o nome da Entidade (XPTO)\n// ATENÇÃO: Tens de garantir que este nome abaixo é EXATAMENTE o nome do nó anterior\n// Vou assumir que é 'Limpar JSON da AI' baseado nos teus prints anteriores.\n// Se usaste um Merge, mete o nome do nó Merge.\nconst nodeSource = $('Limpar JSON da AI'); \n\n// Validação de segurança para não dar erro se o nó não existir\nif (!nodeSource || nodeSource.length === 0) {\n    throw new Error(\"Não consegui encontrar o nó 'Limpar JSON da AI'. Verifica o nome!\");\n}\n\nconst dadosOrigem = nodeSource.first().json;\nconst entidadeIA = (dadosOrigem.entidade || \"Desconhecido\").trim();\n\n// Log para debug (aparece na consola do browser)\nconsole.log(`A comparar entidade IA: \"${entidadeIA}\" com ${pastasReais.length} pastas.`);\n\n// 3. Encontrar a pasta (Loop robusto para várias pastas)\nlet melhorMatch = null;\nlet maiorScore = 0;\n\nfor (const pasta of pastasReais) {\n  // Garantir que a pasta tem nome\n  if (!pasta.name) continue;\n  \n  const score = similarity(entidadeIA, pasta.name);\n  \n  // Debug opcional: descomenta para ver scores no console\n  // console.log(`Comparando \"${entidadeIA}\" com \"${pasta.name}\" -> Score: ${score}`);\n\n  if (score > maiorScore) {\n    maiorScore = score;\n    melhorMatch = pasta;\n  }\n}\n\n// 4. Validação (Threshold de 75%)\nif (!melhorMatch || maiorScore < 0.75) {\n  // Retornamos JSON a dizer que falhou, para o nó IF seguinte lidar com isso\n  // (Assim não crasha o workflow todo)\n  return {\n    json: {\n        match_found: false,\n        entidade_procurada: entidadeIA,\n        melhor_tentativa: melhorMatch ? melhorMatch.name : \"Nenhuma\",\n        score: maiorScore,\n        ...dadosOrigem // Mantemos os dados originais\n    }\n  };\n}\n\n// 5. Output Final (Sucesso)\nreturn {\n  json: {\n    match_found: true,\n    id_pasta_destino: melhorMatch.id, \n    entidade_nome: melhorMatch.name, // O nome real da pasta (ex: XPTO Lda)\n    nome_ficheiro: dadosOrigem.nome_base || \"documento_sem_nome\",\n    score: maiorScore,\n    ...dadosOrigem\n  },\n  // Tenta ir buscar o binário ao nó anterior se existir\n  binary: nodeSource.first().binary \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1856,
+        400
+      ],
+      "id": "f6e805ff-ba91-451d-bb65-3f60d6ea229e",
+      "name": "Fuzzy Match"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Ir buscar os dados DO NÓ ANTERIOR (O output do Fuzzy Match)\nconst inputFuzzy = $input.first().json;\n\n// 2. Ir buscar os dados ORIGINAIS (Onde estão os binários)\nconst nodeOrigem = $('Formatar Metadados e encontrar caminho da pasta');\nconst binarioOriginal = nodeOrigem.first().binary;\n\nif (!binarioOriginal) {\n  throw new Error(\"Os ficheiros perderam-se! Não encontrei binários no nó 'Formatar Metadados'.\");\n}\n\n// 3. Preparar Variáveis de Data\nconst dadosOriginais = nodeOrigem.first().json; \nconst sentido = dadosOriginais.sentido || \"REC\";\nconst entidade = (inputFuzzy.entidade_nome || dadosOriginais.entidade || \"Doc\").substring(0, 30);\n\nconst hoje = new Date();\nconst yyyy = hoje.getFullYear();\nconst mm = String(hoje.getMonth() + 1).padStart(2, '0');\nconst dd = String(hoje.getDate()).padStart(2, '0');\nconst prefixoData = `${yyyy}${mm}${dd}`;\n\n// Limpar nome para filesystem\nconst limparNome = (txt) => String(txt || \"\").replace(/[\\/\\\\:*?\"<>|]/g, \"\").replace(/\\s+/g, \"_\").trim();\n\n// --- 4. PROCESSAR TODOS OS BINÁRIOS ---\nconst outputItems = [];\nconst keys = Object.keys(binarioOriginal);\nlet contadorAnexos = 1;\n\nfor (const key of keys) {\n  const file = binarioOriginal[key];\n  \n  // Ignorar o index_html (é o HTML do email, não um anexo real)\n  if (key === 'index_html') continue;\n  \n  // Obter extensão do ficheiro original\n  const nomeOriginal = file.fileName || 'documento';\n  const extensao = nomeOriginal.includes('.') ? nomeOriginal.split('.').pop() : 'pdf';\n  \n  // Criar nome baseado no tipo\n  let novoNome;\n  let tipoFicheiro;\n  \n  if (key === 'data') {\n    // PDF principal (email convertido)\n    novoNome = `${prefixoData}_${sentido}_${limparNome(entidade)}_email.pdf`;\n    tipoFicheiro = 'pdf_principal';\n  } else {\n    // Anexos numerados\n    novoNome = `${prefixoData}_${sentido}_${limparNome(entidade)}_anexo_${contadorAnexos}.${extensao}`;\n    tipoFicheiro = 'anexo';\n    contadorAnexos++;\n  }\n  \n  // Criar cópia do ficheiro com novo nome\n  const arquivoRenomeado = { ...file, fileName: novoNome };\n  \n  // Adicionar item ao output\n  outputItems.push({\n    json: {\n      ...inputFuzzy,\n      nome_final_gerado: novoNome,\n      data_processamento: prefixoData,\n      tipo_ficheiro: tipoFicheiro\n    },\n    binary: {\n      data: arquivoRenomeado\n    }\n  });\n}\n\n// Se não houver ficheiros válidos, criar item vazio com erro\nif (outputItems.length === 0) {\n  throw new Error('Nenhum ficheiro válido encontrado para upload.');\n}\n\nreturn outputItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2064,
+        400
+      ],
+      "id": "643b4f5e-2028-4f4c-b292-7f4c958ee2de",
+      "name": "Nomear Ficheiros"
+    },
+    {
+      "parameters": {
+        "fileName": "=",
+        "parentId": "={{ $json.id_pasta_destino }}",
+        "binaryData": true,
+        "binaryPropertyName": "=data"
+      },
+      "type": "n8n-nodes-base.microsoftOneDrive",
+      "typeVersion": 1,
+      "position": [
+        2288,
+        400
+      ],
+      "id": "671975c0-6c4e-4056-be68-3005ff0c958e",
+      "name": "Arquivar pdf (mail) + anexo",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "1Waf1fVLUg7lO3Mh",
+          "name": "Microsoft Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://gotenberg:3000/forms/chromium/convert/html",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "files",
+              "inputDataFieldName": "index_html"
+            },
+            {
+              "name": "printBackground",
+              "value": "true"
+            },
+            {
+              "name": "paperWidth",
+              "value": "8.27"
+            },
+            {
+              "name": "paperHeight",
+              "value": "11.7"
+            },
+            {
+              "name": "marginTop",
+              "value": "0"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        176,
+        256
+      ],
+      "id": "0edcc156-cb42-4d44-ab86-8076b85ed7ab",
+      "name": "Gerar PDF (mail)",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtém o objeto JSON completo do nó anterior\nconst inputJson = $input.first().json;\n\nlet dados = {};\n\n// 1. VERIFICAÇÃO INTELIGENTE: O JSON já veio pronto?\n// Se já tivermos \"id_projeto\" ou \"entidade\" na raiz, usamos diretamente.\nif (inputJson.id_projeto || inputJson.entidade) {\n  dados = inputJson;\n} else {\n  // 2. FALLBACK: Se não veio pronto, tentamos limpar o texto bruto (campo .text ou .content)\n  // Alguns modelos retornam em .text, outros em .content, outros stringify o output.\n  const rawText = inputJson.text || inputJson.content || JSON.stringify(inputJson);\n  \n  try {\n    dados = parseAIResponse(rawText);\n  } catch (e) {\n    dados = {}; // Falha total, vai usar defaults\n  }\n}\n\n// --- FUNÇÃO DE LIMPEZA (Mantida para segurança) ---\nfunction parseAIResponse(texto) {\n  if (typeof texto === 'object') return texto; // Se já for obj, devolve\n  \n  let limpo = texto\n    .replace(/```json\\s*/gi, '')\n    .replace(/```\\s*/g, '')\n    .trim();\n  \n  const match = limpo.match(/\\{[\\s\\S]*\\}/);\n  if (match) limpo = match[0];\n  \n  try {\n    return JSON.parse(limpo);\n  } catch (e) {\n    // Tenta corrigir keys sem aspas (JSON5)\n    const corrigido = limpo.replace(/([{,]\\s*)(\\w+)(\\s*:)/g, '$1\"$2\"$3');\n    return JSON.parse(corrigido);\n  }\n}\n\n// --- VALIDAÇÃO FINAL E DEFAULTS ---\nconst defaults = {\n  id_projeto: \"000\",\n  entidade: \"Desconhecido\"\n};\n\nconst resultado = {\n  // Garante que usa o valor que veio, ou o default\n  id_projeto: dados.id_projeto || defaults.id_projeto,\n  entidade: dados.entidade || defaults.entidade\n};\n\n// Validação extra: ID Projeto tem de ter 3 dígitos (ex: 001)\n// Se vier \"1\", transforma em \"001\". Se vier lixo, fica \"000\".\nif (resultado.id_projeto !== \"000\") {\n    // Garante que é string\n    let idStr = String(resultado.id_projeto).trim();\n    // Se for um número simples (ex: \"1\"), faz padStart\n    if (/^\\d{1,3}$/.test(idStr)) {\n        resultado.id_projeto = idStr.padStart(3, '0');\n    } else if (!/^\\d{3}$/.test(idStr)) {\n        // Se não for numérico válido, reverte para default\n        resultado.id_projeto = \"000\";\n    }\n}\n\nreturn { json: resultado };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        448
+      ],
+      "id": "bf897f2e-091e-4e80-ba8f-a6a1106164f7",
+      "name": "Limpar JSON da AI"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e25dd7c2-d5e9-43e9-a1e7-95d2766267d5",
+              "leftValue": "={{ $json.Subject }}",
+              "rightValue": "Out of Office",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "c83ace4f-a419-4855-ba52-fd8eb80cd549",
+              "leftValue": "={{ $json.Subject }}",
+              "rightValue": "Automatic reply",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "7e0adf0a-1c90-4217-935a-d0c26b14b7c5",
+              "leftValue": "={{ $json.From }}",
+              "rightValue": "martim.n8n.test@gmail.com",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -944,
+        400
+      ],
+      "id": "73134182-9877-43d3-aee4-6ab4caa82291",
+      "name": "Filtrar Auto-Replies"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1152,
+        752
+      ],
+      "id": "5399ea86-c499-4989-8348-ea17f8c74612",
+      "name": "Erro Detetado"
+    },
+    {
+      "parameters": {
+        "jsCode": "const execution = $input.first().json.execution || {};\nconst workflow = $input.first().json.workflow || {};\n\n// Tentar obter dados do email original\nlet emailOriginal = {};\ntry {\n  emailOriginal = $('Obter conteúdo').first().json;\n} catch (e) {\n  emailOriginal = { id: null, from: { text: 'Desconhecido' } };\n}\n\nconst timestamp = new Date().toLocaleString('pt-PT', { \n  timeZone: 'Europe/Lisbon'\n});\n\nconst mensagemErro = `\n⚠️ Falha no processamento do email\n\nLamentamos, mas não foi possível arquivar o seu email automaticamente.\n\nDetalhes técnicos:\n- Nó com erro: ${execution.lastNodeExecuted || 'Desconhecido'}\n- Erro: ${execution.error?.message || 'Erro desconhecido'}\n- Timestamp: ${timestamp}\n\nPor favor, tente reencaminhar o email novamente. Se o problema persistir, contacte o suporte.\n\n---\nSistema de Arquivamento Automático\n`.trim();\n\nreturn {\n  json: {\n    mensagem_erro: mensagemErro,\n    email_id: emailOriginal.id,\n    remetente: emailOriginal.from?.text || 'da.33.ne@gmail.com',\n    erro_tecnico: execution.error?.message\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        752
+      ],
+      "id": "1b863878-e5a5-4b32-87b4-a225fbd67c48",
+      "name": "Preparar Resposta Erro"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.remetente }}",
+        "subject": "⚠️ Falha no arquivamento do email",
+        "message": "={{ $json.mensagem_erro }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -544,
+        752
+      ],
+      "id": "b226a2df-e44c-4833-80f3-88ddb729760a",
+      "name": "Notificar Erro",
+      "webhookId": "9ee7b4e7-26ad-4a6a-ad4a-ebcecc8cff5d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "EPHE75hEclWyGsta",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obter dados do upload\nconst dadosUpload = $input.first().json;\nconst dadosFormatar = $('Formatar Metadados e encontrar caminho da pasta').first().json;\n\n// Obter o ID do email original para reply\nconst emailOriginal = $('Obter conteúdo').first().json;\n\n// Construir mensagem de confirmação\nconst mensagem = `\n✅ Email arquivado com sucesso!\n\n📁 Caminho: ${dadosFormatar.caminho_final}\n📄 Ficheiro: ${dadosUpload.nome_final_gerado || dadosFormatar.nome_base}\n🏢 Entidade: ${dadosUpload.entidade_nome || dadosFormatar.entidade}\n📂 Projeto: ${dadosFormatar.id_projeto}-${dadosFormatar.nome_projeto || 'N/A'}\n\n---\nEsta é uma mensagem automática do sistema de arquivamento.\n`.trim();\n\nreturn {\n  json: {\n    mensagem_sucesso: mensagem,\n    email_id: emailOriginal.id,\n    ...dadosUpload\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2496,
+        400
+      ],
+      "id": "cd09feb2-6709-4560-a3d7-c5e8ae7d0f4c",
+      "name": "Preparar Resposta Sucesso"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $json.email_id }}",
+        "message": "={{ $json.mensagem_sucesso }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2704,
+        400
+      ],
+      "id": "a72b9124-7032-4f94-a90b-0199a0f6c2cc",
+      "name": "Confirmar Arquivamento",
+      "webhookId": "59993e57-809e-44ea-b339-c15d55e73b1c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "EPHE75hEclWyGsta",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extrair ID projeto e entidade",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Novo Email": {
+      "main": [
+        [
+          {
+            "node": "Filtrar Auto-Replies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obter conteúdo": {
+      "main": [
+        [
+          {
+            "node": "Limpar Headers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limpar Headers": {
+      "main": [
+        [
+          {
+            "node": "Gerar PDF (mail)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extrair ID projeto e entidade",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Unir dados",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Extrair ID projeto e entidade": {
+      "main": [
+        [
+          {
+            "node": "Limpar JSON da AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unir dados": {
+      "main": [
+        [
+          {
+            "node": "Formatar Metadados e encontrar caminho da pasta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar Metadados e encontrar caminho da pasta": {
+      "main": [
+        [
+          {
+            "node": "Localizar Projeto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Localizar Projeto": {
+      "main": [
+        [
+          {
+            "node": "Validar projeto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar projeto": {
+      "main": [
+        [
+          {
+            "node": "Listar entidades",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listar entidades": {
+      "main": [
+        [
+          {
+            "node": "Fuzzy Match",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fuzzy Match": {
+      "main": [
+        [
+          {
+            "node": "Nomear Ficheiros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nomear Ficheiros": {
+      "main": [
+        [
+          {
+            "node": "Arquivar pdf (mail) + anexo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Arquivar pdf (mail) + anexo": {
+      "main": [
+        [
+          {
+            "node": "Preparar Resposta Sucesso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Resposta Sucesso": {
+      "main": [
+        [
+          {
+            "node": "Confirmar Arquivamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Erro Detetado": {
+      "main": [
+        [
+          {
+            "node": "Preparar Resposta Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Resposta Erro": {
+      "main": [
+        [
+          {
+            "node": "Notificar Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar PDF (mail)": {
+      "main": [
+        [
+          {
+            "node": "Unir dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limpar JSON da AI": {
+      "main": [
+        [
+          {
+            "node": "Unir dados",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Filtrar Auto-Replies": {
+      "main": [
+        [
+          {
+            "node": "Obter conteúdo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "16ee484b-4127-41d8-8e98-d17240f050e2",
+  "meta": {
+    "instanceId": "f52df6f7e8d33c9bba620dff08be36a67b7d4d89cc385cb4945c4e1f60114e51"
+  },
+  "id": "upPr1SnylLgmwcVs",
+  "tags": []
+}

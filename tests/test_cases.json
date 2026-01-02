@@ -1,0 +1,1263 @@
+{
+    "version": "1.0",
+    "description": "100 test cases for n8n email archiving workflow",
+    "test_cases": [
+        {
+            "id": "TC001",
+            "subject": "Fwd: Fatura Janeiro - Projeto 123",
+            "body": "---------- Forwarded message ---------\nFrom: João Silva <joao.silva@vodafone.pt>\nDate: Mon, Jan 1, 2026\nSubject: Fatura Janeiro\nTo: martim@empresa.pt\n\nBom dia,\n\nSegue em anexo a fatura de Janeiro.\n\nCumprimentos,\nJoão Silva\nDep. Financeiro\nVodafone Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "fatura_jan.pdf"
+            ],
+            "expected": {
+                "id_projeto": "123",
+                "entidade": "Vodafone",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC002",
+            "subject": "Re: Orçamento Anual",
+            "body": "---------- Forwarded message ---------\nFrom: Maria Costa <maria@galp.pt>\nDate: Mon, Jan 1, 2026\nSubject: Orçamento Anual\nTo: cliente@empresa.pt\n\nSegue o orçamento conforme pedido.\n\nAtentamente,\nMaria Costa\nGalp Energia",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Galp",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC003",
+            "subject": "Fwd: Contrato 456 - PwC",
+            "body": "---------- Mensagem encaminhada ---------\nDe: Ana Rodrigues <ana.rodrigues@pwc.pt>\nData: 2 Jan 2026\nAssunto: Contrato 456\nPara: martim@empresa.pt\n\nBoa tarde,\n\nEnvio o contrato para revisão.\n\nAna Rodrigues\nSenior Consultant\nPwC Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "contrato.pdf",
+                "anexo_termos.pdf"
+            ],
+            "expected": {
+                "id_projeto": "456",
+                "entidade": "PwC",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC004",
+            "subject": "Enc: Proposta Comercial",
+            "body": "----- Mensagem reencaminhada -----\nDe: Pedro Santos <pedro@arquitetos-associados.pt>\nPara: comercial@empresa.pt\n\nVenho apresentar a nossa proposta.\n\nPedro Santos\nArquitetos Associados",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "proposta.pdf"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Arquitetos Associados",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC005",
+            "subject": "FW: Invoice #789",
+            "body": "---------- Forwarded message ---------\nFrom: John Smith <john@microsoft.com>\nDate: Jan 2, 2026\nSubject: Invoice #789\nTo: accounts@empresa.pt\n\nPlease find attached the invoice.\n\nBest regards,\nJohn Smith\nMicrosoft Corporation",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "invoice_789.pdf"
+            ],
+            "expected": {
+                "id_projeto": "789",
+                "entidade": "Microsoft",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC006",
+            "subject": "Fwd: Sem assunto relevante",
+            "body": "---------- Forwarded message ---------\nFrom: utilizador@gmail.com\nDate: Jan 2, 2026\nTo: destino@empresa.pt\n\nOlá, segue o ficheiro.\n\nEnviado do meu iPhone",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "doc.pdf"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Desconhecido",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC007",
+            "subject": "Fwd: RE: FW: Projeto 001 - Múltiplos prefixos",
+            "body": "---------- Forwarded message ---------\nFrom: cliente@edp.pt\nTo: suporte@empresa.pt\n\nConfirmo receção.\n\nEDP Comercial",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "001",
+                "entidade": "EDP",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC008",
+            "subject": "Out of Office: Reunião",
+            "body": "Estarei ausente até dia 10. Para assuntos urgentes contacte...",
+            "from": "auto@empresa.pt",
+            "attachments": [],
+            "expected": {
+                "filtered": true,
+                "reason": "auto-reply"
+            }
+        },
+        {
+            "id": "TC009",
+            "subject": "Automatic reply: Your email",
+            "body": "Thank you for your email. I will respond shortly.",
+            "from": "noreply@empresa.pt",
+            "attachments": [],
+            "expected": {
+                "filtered": true,
+                "reason": "auto-reply"
+            }
+        },
+        {
+            "id": "TC010",
+            "subject": "Fwd: Documentos Projeto 57",
+            "body": "---------- Forwarded message ---------\nFrom: martimcr@gmail.com\nDate: Jan 2, 2026\nSubject: Documentos\nTo: cliente@nos.pt\n\nBom dia,\n\nEnvio os documentos solicitados.\n\nMartim Ramos",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "docs.zip"
+            ],
+            "expected": {
+                "id_projeto": "057",
+                "entidade": "NOS",
+                "sentido": "ENV"
+            }
+        },
+        {
+            "id": "TC011",
+            "subject": "Fwd: Relatório Mensal",
+            "body": "---------- Forwarded message ---------\nFrom: martimcr@gmail.com\nTo: financeiro@altice.pt\n\nSegue o relatório de Dezembro.\n\nCumprimentos",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "relatorio_dez.pdf"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Altice",
+                "sentido": "ENV"
+            }
+        },
+        {
+            "id": "TC012",
+            "subject": "Fwd: Fatura com caracteres especiais €ñç",
+            "body": "---------- Forwarded message ---------\nFrom: José María <jose@empresa-española.es>\nTo: compras@empresa.pt\n\nAdjunto factura de 1.500€.\n\nSaludos,\nJosé María González\nEmpresa Española S.L.",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "factura.pdf"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Empresa Española",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC013",
+            "subject": "Fwd: Projeto 999 - Número máximo",
+            "body": "---------- Forwarded message ---------\nFrom: admin@sonae.pt\nTo: parceiros@empresa.pt\n\nDocumentação do projeto.\n\nSonae MC",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "999",
+                "entidade": "Sonae",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC014",
+            "subject": "Fwd: Projeto 1 - Número simples",
+            "body": "---------- Forwarded message ---------\nFrom: contato@jerónimo-martins.pt\nTo: compras@empresa.pt\n\nProposta comercial.\n\nJerónimo Martins",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "001",
+                "entidade": "Jerónimo Martins",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC015",
+            "subject": "Fwd: Projeto ABC - ID inválido",
+            "body": "---------- Forwarded message ---------\nFrom: info@ren.pt\nTo: energia@empresa.pt\n\nInformações sobre o projeto.\n\nREN - Redes Energéticas",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "REN",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC016",
+            "subject": "Fwd: Email vazio",
+            "body": "---------- Forwarded message ---------\nFrom: vazio@teste.pt\nTo: destino@empresa.pt\n\n",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Desconhecido",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC017",
+            "subject": "",
+            "body": "---------- Forwarded message ---------\nFrom: semassunto@brisa.pt\nTo: contacto@empresa.pt\n\nMensagem sem assunto.\n\nBrisa",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Brisa",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC018",
+            "subject": "Fwd: Múltiplos anexos",
+            "body": "---------- Forwarded message ---------\nFrom: docs@tap.pt\nTo: viagens@empresa.pt\n\nSegue documentação completa.\n\nTAP Air Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "bilhete.pdf",
+                "itinerario.pdf",
+                "fatura.pdf",
+                "voucher.pdf"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "TAP",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC019",
+            "subject": "Fwd: Anexo de imagem",
+            "body": "---------- Forwarded message ---------\nFrom: marketing@continente.pt\nTo: publicidade@empresa.pt\n\nCampanha de marketing.\n\nContinente",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "campanha.jpg",
+                "banner.png"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Continente",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC020",
+            "subject": "Fwd: Anexo Excel",
+            "body": "---------- Forwarded message ---------\nFrom: financas@meo.pt\nTo: contas@empresa.pt\n\nRelatório financeiro.\n\nMEO",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "relatorio.xlsx"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "MEO",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC021",
+            "subject": "Fwd: Anexo Word",
+            "body": "---------- Forwarded message ---------\nFrom: juridico@bes.pt\nTo: legal@empresa.pt\n\nContrato para análise.\n\nBES",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "contrato.docx"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "BES",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC022",
+            "subject": "Fwd: HTML complexo",
+            "body": "<html><body><div style='color:red'>---------- Forwarded message ---------</div><br>From: design@worten.pt<br>To: loja@empresa.pt<br><br><b>Newsletter</b> com <i>formatação</i> <u>complexa</u>.<br><br>Worten</body></html>",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Worten",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC023",
+            "subject": "Fwd: Entidade no domínio apenas",
+            "body": "---------- Forwarded message ---------\nFrom: utilizador123@deloitte.pt\nTo: audit@empresa.pt\n\nOlá,\n\nSegue informação.\n\nObrigado",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Deloitte",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC024",
+            "subject": "Fwd: Entidade com Lda",
+            "body": "---------- Forwarded message ---------\nFrom: geral@construcoes-silva-lda.pt\nTo: obras@empresa.pt\n\nOrçamento de obras.\n\nConstruções Silva Lda.",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "orcamento.pdf"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Construções Silva",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC025",
+            "subject": "Fwd: Entidade com SA",
+            "body": "---------- Forwarded message ---------\nFrom: investidores@semapa.pt\nTo: financeiro@empresa.pt\n\nRelatório anual.\n\nSemapa SA",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Semapa",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC026",
+            "subject": "Fwd: Siglas conhecidas - CTT",
+            "body": "---------- Forwarded message ---------\nFrom: encomendas@ctt.pt\nTo: logistica@empresa.pt\n\nTracking da encomenda.\n\nCTT - Correios de Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "CTT",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC027",
+            "subject": "Fwd: Siglas - SIBS",
+            "body": "---------- Forwarded message ---------\nFrom: pagamentos@sibs.pt\nTo: tesouraria@empresa.pt\n\nRelatório de pagamentos.\n\nSIBS",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "SIBS",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC028",
+            "subject": "Fwd: Banco comercial",
+            "body": "---------- Forwarded message ---------\nFrom: gestorconta@millenniumbcp.pt\nTo: financas@empresa.pt\n\nExtrato de conta.\n\nMillennium BCP",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "extrato.pdf"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Millennium BCP",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC029",
+            "subject": "Fwd: Seguradora",
+            "body": "---------- Forwarded message ---------\nFrom: sinistros@fidelidade.pt\nTo: rh@empresa.pt\n\nApólice de seguro.\n\nFidelidade Seguros",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "apolice.pdf"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Fidelidade",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC030",
+            "subject": "Fwd: Texto muito longo",
+            "body": "---------- Forwarded message ---------\nFrom: relatorios@edp.pt\nTo: energia@empresa.pt\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nEDP Renováveis",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "EDP",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC031",
+            "subject": "Fwd: Só números no corpo",
+            "body": "---------- Forwarded message ---------\nFrom: facturacao@auchan.pt\nTo: compras@empresa.pt\n\n123456789\n987654321\n555555555\n\nAuchan",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Auchan",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC032",
+            "subject": "Fwd: Projeto 50 com entidade explícita",
+            "body": "---------- Forwarded message ---------\nFrom: contratos@ikea.pt\nTo: mobiliario@empresa.pt\n\nSomos da IKEA e enviamos contrato do projeto 50.\n\nIKEA Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "contrato.pdf"
+            ],
+            "expected": {
+                "id_projeto": "050",
+                "entidade": "IKEA",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC033",
+            "subject": "Fwd: Email de particulares",
+            "body": "---------- Forwarded message ---------\nFrom: Manuel Silva <manuel.silva@hotmail.com>\nTo: geral@empresa.pt\n\nBoa tarde,\n\nQueria informações sobre os vossos serviços.\n\nManuel Silva",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Manuel Silva",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC034",
+            "subject": "Fwd: Gmail pessoal",
+            "body": "---------- Forwarded message ---------\nFrom: ana.costa.1990@gmail.com\nTo: info@empresa.pt\n\nOlá!\n\nAna",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Ana Costa",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC035",
+            "subject": "Fwd: Assinatura enterprise",
+            "body": "---------- Forwarded message ---------\nFrom: carlos@generico.pt\nTo: parceiros@empresa.pt\n\nInformação solicitada.\n\nCarlos Mendes\nDirector Comercial\nSiemens Portugal, S.A.\nTel: +351 210 000 000\nwww.siemens.pt",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Siemens",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC036",
+            "subject": "Fwd: Forward aninhado",
+            "body": "---------- Forwarded message ---------\nFrom: intermediario@empresa2.pt\nTo: final@empresa.pt\n\n---------- Forwarded message ---------\nFrom: original@bosch.pt\nTo: intermediario@empresa2.pt\n\nMensagem original da Bosch.\n\nBosch Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Bosch",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC037",
+            "subject": "Fwd: Thread de emails",
+            "body": "---------- Forwarded message ---------\nFrom: suporte@oracle.pt\nTo: ti@empresa.pt\n\n> Em 01/01/2026, escreveu:\n> > Obrigado pela informação.\n> > \n> > > Mensagem original está aqui.\n\nResposta final.\n\nOracle Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Oracle",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC038",
+            "subject": "Fwd: Email iPhone",
+            "body": "---------- Forwarded message ---------\nFrom: movel@sap.pt\nTo: erp@empresa.pt\n\nOk, confirmado.\n\nEnviado do meu iPhone",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "SAP",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC039",
+            "subject": "Fwd: Email Android",
+            "body": "---------- Forwarded message ---------\nFrom: mobile@huawei.pt\nTo: tech@empresa.pt\n\nRecebido.\n\nEnviado pelo Gmail Mobile",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Huawei",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC040",
+            "subject": "Fwd: Outlook signature",
+            "body": "---------- Forwarded message ---------\nFrom: executive@cisco.pt\nTo: networking@empresa.pt\n\nProposta de networking.\n\n________________________________\nDe: Cisco Systems\nEnviada: segunda-feira, 1 de Janeiro de 2026\nPara: Cliente",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Cisco",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC041",
+            "subject": "Fwd: Projeto 100",
+            "body": "---------- Forwarded message ---------\nFrom: vendas@lenovo.pt\nTo: it@empresa.pt\n\nCotação de equipamentos.\n\nLenovo",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "cotacao.pdf"
+            ],
+            "expected": {
+                "id_projeto": "100",
+                "entidade": "Lenovo",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC042",
+            "subject": "Fwd: Projeto 007",
+            "body": "---------- Forwarded message ---------\nFrom: secreto@mi6.gov.uk\nTo: especial@empresa.pt\n\nMissão confirmada.\n\nMI6",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "007",
+                "entidade": "MI6",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC043",
+            "subject": "Fwd: Entidade no contexto",
+            "body": "---------- Forwarded message ---------\nFrom: generico@mail.pt\nTo: parceiro@empresa.pt\n\nAqui vai o projeto da Nestlé conforme pedido.\n\nObrigado",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Nestlé",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC044",
+            "subject": "Fwd: Fatura para a Unilever",
+            "body": "---------- Forwarded message ---------\nFrom: accounting@supplier.pt\nTo: ap@empresa.pt\n\nFatura para a Unilever referente ao mês passado.\n\nDep. Contabilidade",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "fatura.pdf"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Unilever",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC045",
+            "subject": "Fwd: Menção múltiplas empresas",
+            "body": "---------- Forwarded message ---------\nFrom: consultor@kpmg.pt\nTo: audit@empresa.pt\n\nReunião com a Sonae e a Jerónimo Martins.\n\nKPMG Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "KPMG",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC046",
+            "subject": "Fwd: Nome fantasia vs razão social",
+            "body": "---------- Forwarded message ---------\nFrom: lojas@inditex.pt\nTo: retail@empresa.pt\n\nParceria com as lojas Zara.\n\nInditex Group",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Inditex",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC047",
+            "subject": "Fwd: Email em inglês",
+            "body": "---------- Forwarded message ---------\nFrom: sales@amazon.com\nTo: ecommerce@empresa.pt\n\nDear Partner,\n\nPlease find attached our proposal.\n\nBest regards,\nAmazon Web Services",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "proposal.pdf"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Amazon",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC048",
+            "subject": "Fwd: Email em francês",
+            "body": "---------- Forwarded message ---------\nFrom: ventes@carrefour.fr\nTo: international@empresa.pt\n\nBonjour,\n\nVeuillez trouver ci-joint notre devis.\n\nCordialement,\nCarrefour France",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Carrefour",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC049",
+            "subject": "Fwd: Email em espanhol",
+            "body": "---------- Forwarded message ---------\nFrom: comercial@repsol.es\nTo: combustiveis@empresa.pt\n\nBuenos días,\n\nAdjunto la documentación.\n\nRepsol España",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Repsol",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC050",
+            "subject": "Fwd: Email misto PT/EN",
+            "body": "---------- Forwarded message ---------\nFrom: global@shell.com\nTo: fuel@empresa.pt\n\nHi,\n\nSegue documentação as requested.\n\nThanks,\nShell Global",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Shell",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC051",
+            "subject": "Fwd: URL no corpo",
+            "body": "---------- Forwarded message ---------\nFrom: marketing@spotify.com\nTo: media@empresa.pt\n\nVeja em https://www.spotify.com/promo\n\nSpotify",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Spotify",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC052",
+            "subject": "Fwd: Telefone na assinatura",
+            "body": "---------- Forwarded message ---------\nFrom: suporte@netflix.com\nTo: streaming@empresa.pt\n\nSuporte técnico.\n\nNetflix Portugal\nTel: 800 123 456\nwww.netflix.com",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Netflix",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC053",
+            "subject": "Fwd: Morada completa",
+            "body": "---------- Forwarded message ---------\nFrom: sede@apple.pt\nTo: devices@empresa.pt\n\nApple Portugal\nAv. da Liberdade, 123\n1250-096 Lisboa\nNIF: 500 000 000",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Apple",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC054",
+            "subject": "Fwd: CAPS LOCK",
+            "body": "---------- Forwarded message ---------\nFrom: URGENTE@SAMSUNG.PT\nTo: ELETRONICOS@EMPRESA.PT\n\nURGENTE! PEDIDO DE ORÇAMENTO!\n\nSAMSUNG PORTUGAL",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Samsung",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC055",
+            "subject": "fwd: minúsculas",
+            "body": "---------- forwarded message ---------\nfrom: informal@xiaomi.pt\nto: gadgets@empresa.pt\n\nolá, tudo?\n\nxiaomi",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Xiaomi",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC056",
+            "subject": "Fwd: mIxEd CaSe",
+            "body": "---------- Forwarded message ---------\nFrom: MaRkEtInG@OnEpLuS.cOm\nTo: TeChNoLoGy@EmPrEsA.pT\n\nNeW pRoDuCt LaUnCh!\n\nOnePlus",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "OnePlus",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC057",
+            "subject": "Fwd: Projeto 12345 - Excede 3 dígitos",
+            "body": "---------- Forwarded message ---------\nFrom: projetos@philips.pt\nTo: healthcare@empresa.pt\n\nProjeto especial.\n\nPhilips Healthcare",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Philips",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC058",
+            "subject": "Fwd: REF: 500 unidades",
+            "body": "---------- Forwarded message ---------\nFrom: vendas@lg.pt\nTo: compras@empresa.pt\n\nReferência: 500 unidades de monitores.\n\nLG Electronics",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "LG",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC059",
+            "subject": "Fwd: Anexo grande (simulado)",
+            "body": "---------- Forwarded message ---------\nFrom: engenharia@boeing.com\nTo: aerospace@empresa.pt\n\nPlanos técnicos em anexo (50MB).\n\nBoeing",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "planos_tecnicos.pdf"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Boeing",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC060",
+            "subject": "Fwd: Anexo com nome especial",
+            "body": "---------- Forwarded message ---------\nFrom: docs@airbus.com\nTo: aviation@empresa.pt\n\nDocumentação técnica.\n\nAirbus",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "relatório (versão final) - 2026.pdf"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Airbus",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC061",
+            "subject": "Fwd: Emoji no corpo 🎉",
+            "body": "---------- Forwarded message ---------\nFrom: eventos@redbull.pt\nTo: marketing@empresa.pt\n\n🎉 Convite para evento! 🚀\n\nRed Bull Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Red Bull",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC062",
+            "subject": "Fwd: Projeto #234",
+            "body": "---------- Forwarded message ---------\nFrom: suporte@bmw.pt\nTo: frota@empresa.pt\n\nAtualização do projeto #234.\n\nBMW Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "234",
+                "entidade": "BMW",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC063",
+            "subject": "Fwd: Referência Proj-345",
+            "body": "---------- Forwarded message ---------\nFrom: fleet@mercedes.pt\nTo: automoveis@empresa.pt\n\nProposta Proj-345.\n\nMercedes-Benz",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "345",
+                "entidade": "Mercedes-Benz",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC064",
+            "subject": "Fwd: Código PO-567",
+            "body": "---------- Forwarded message ---------\nFrom: procurement@audi.pt\nTo: compras@empresa.pt\n\nPurchase Order PO-567.\n\nAudi Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "567",
+                "entidade": "Audi",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC065",
+            "subject": "Fwd: Startup portuguesa",
+            "body": "---------- Forwarded message ---------\nFrom: ceo@talkdesk.com\nTo: tech@empresa.pt\n\nParceria estratégica.\n\nTalkdesk",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Talkdesk",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC066",
+            "subject": "Fwd: Unicórnio tech",
+            "body": "---------- Forwarded message ---------\nFrom: partnerships@farfetch.com\nTo: fashion@empresa.pt\n\nColaboração moda.\n\nFarfetch",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Farfetch",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC067",
+            "subject": "Fwd: Fintech",
+            "body": "---------- Forwarded message ---------\nFrom: integrations@revolut.com\nTo: fintech@empresa.pt\n\nAPI de pagamentos.\n\nRevolut",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Revolut",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC068",
+            "subject": "Fwd: Governo/Entidade pública",
+            "body": "---------- Forwarded message ---------\nFrom: gabinete@portugal.gov.pt\nTo: publico@empresa.pt\n\nConcurso público.\n\nGoverno de Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Governo de Portugal",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC069",
+            "subject": "Fwd: Câmara Municipal",
+            "body": "---------- Forwarded message ---------\nFrom: urbanismo@cm-lisboa.pt\nTo: obras@empresa.pt\n\nLicenciamento.\n\nCâmara Municipal de Lisboa",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Câmara Municipal de Lisboa",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC070",
+            "subject": "Fwd: Autoridade Tributária",
+            "body": "---------- Forwarded message ---------\nFrom: info@at.gov.pt\nTo: fiscal@empresa.pt\n\nNotificação fiscal.\n\nAutoridade Tributária",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "notificacao.pdf"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Autoridade Tributária",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC071",
+            "subject": "Fwd: Segurança Social",
+            "body": "---------- Forwarded message ---------\nFrom: contribuicoes@seg-social.pt\nTo: rh@empresa.pt\n\nDeclaração de contribuições.\n\nSegurança Social",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Segurança Social",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC072",
+            "subject": "Fwd: Universidade",
+            "body": "---------- Forwarded message ---------\nFrom: reitoria@ulisboa.pt\nTo: academico@empresa.pt\n\nParceria académica.\n\nUniversidade de Lisboa",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Universidade de Lisboa",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC073",
+            "subject": "Fwd: Hospital",
+            "body": "---------- Forwarded message ---------\nFrom: administracao@chlc.min-saude.pt\nTo: saude@empresa.pt\n\nContrato de fornecimento.\n\nCentro Hospitalar Lisboa Central",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Centro Hospitalar Lisboa Central",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC074",
+            "subject": "Fwd: ONG",
+            "body": "---------- Forwarded message ---------\nFrom: parcerias@amnistia.pt\nTo: rse@empresa.pt\n\nParceria social.\n\nAmnistia Internacional Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Amnistia Internacional",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC075",
+            "subject": "Fwd: Sindicato",
+            "body": "---------- Forwarded message ---------\nFrom: comunicacao@cgtp.pt\nTo: rh@empresa.pt\n\nNegociação coletiva.\n\nCGTP",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "CGTP",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC076",
+            "subject": "Fwd: Associação empresarial",
+            "body": "---------- Forwarded message ---------\nFrom: eventos@cip.org.pt\nTo: presidencia@empresa.pt\n\nConferência anual.\n\nCIP - Confederação Empresarial de Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "CIP",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC077",
+            "subject": "Fwd: Consulado",
+            "body": "---------- Forwarded message ---------\nFrom: visa@embaixada-alemanha.pt\nTo: legal@empresa.pt\n\nDocumentação de visto.\n\nEmbaixada da Alemanha",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Embaixada da Alemanha",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC078",
+            "subject": "Fwd: Email com tabela HTML",
+            "body": "---------- Forwarded message ---------\nFrom: relatorios@euronext.com\nTo: bolsa@empresa.pt\n\n<table><tr><td>Ação</td><td>Preço</td></tr><tr><td>EDP</td><td>4.50€</td></tr></table>\n\nEuronext Lisboa",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Euronext",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC079",
+            "subject": "Fwd: Lista com bullets",
+            "body": "---------- Forwarded message ---------\nFrom: procurement@bp.com\nTo: fuel@empresa.pt\n\n• Item 1\n• Item 2\n• Item 3\n\nBP Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "BP",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC080",
+            "subject": "Fwd: Citação longa",
+            "body": "---------- Forwarded message ---------\nFrom: legal@total.pt\nTo: juridico@empresa.pt\n\n> Conforme acordado em reunião anterior,\n> segue minuta de contrato para aprovação.\n> Aguardamos resposta em 5 dias úteis.\n\nTotalEnergies",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "TotalEnergies",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC081",
+            "subject": "Fwd: Disclaimer longo",
+            "body": "---------- Forwarded message ---------\nFrom: confidential@goldmansachs.com\nTo: investimento@empresa.pt\n\nProposta de investimento.\n\n---\nThis email is confidential and may be privileged. If you are not the intended recipient, please notify the sender immediately and delete this email. Any unauthorized use is prohibited. Goldman Sachs & Co.",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Goldman Sachs",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC082",
+            "subject": "Fwd: Imagem inline base64",
+            "body": "---------- Forwarded message ---------\nFrom: design@adobe.com\nTo: criativo@empresa.pt\n\nNovo design com imagem inline [data:image/png;base64,...].\n\nAdobe Creative",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Adobe",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC083",
+            "subject": "Fwd: Link mailto",
+            "body": "---------- Forwarded message ---------\nFrom: suporte@salesforce.com\nTo: crm@empresa.pt\n\nContacte-nos: <a href='mailto:help@salesforce.com'>Suporte</a>\n\nSalesforce",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Salesforce",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC084",
+            "subject": "Fwd: Projeto 089",
+            "body": "---------- Forwarded message ---------\nFrom: enterprise@ibm.pt\nTo: mainframe@empresa.pt\n\nProposta técnica para projeto 089.\n\nIBM Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "089",
+                "entidade": "IBM",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC085",
+            "subject": "Fwd: Só espaços no corpo",
+            "body": "---------- Forwarded message ---------\nFrom: vazio@intel.com\nTo: chips@empresa.pt\n\n         \n\nIntel Corporation",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Intel",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC086",
+            "subject": "Fwd: Caracteres japoneses",
+            "body": "---------- Forwarded message ---------\nFrom: global@toyota.co.jp\nTo: auto@empresa.pt\n\nこんにちは (Olá)\n\nToyota Motor Corporation",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Toyota",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC087",
+            "subject": "Fwd: Caracteres árabes",
+            "body": "---------- Forwarded message ---------\nFrom: mena@aramco.sa\nTo: oil@empresa.pt\n\nمرحبا (Olá)\n\nSaudi Aramco",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Saudi Aramco",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC088",
+            "subject": "Fwd: Caracteres chineses",
+            "body": "---------- Forwarded message ---------\nFrom: asia@alibaba.com\nTo: ecommerce@empresa.pt\n\n你好 (Olá)\n\nAlibaba Group",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Alibaba",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC089",
+            "subject": "Fwd: Newlines excessivas",
+            "body": "---------- Forwarded message ---------\nFrom: formatacao@nvidia.com\nTo: gpu@empresa.pt\n\n\n\n\n\nMensagem com muitas linhas vazias.\n\n\n\n\nNVIDIA",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "NVIDIA",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC090",
+            "subject": "Fwd: Tabs e espaços misturados",
+            "body": "---------- Forwarded message ---------\nFrom: code@github.com\nTo: dev@empresa.pt\n\n\tLinha com tab\n    Linha com espaços\n\t  Misto\n\nGitHub",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "GitHub",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC091",
+            "subject": "Fwd: Forward Apple Mail",
+            "body": "Begin forwarded message:\n\nFrom: cupertino@apple.com\nSubject: Product Launch\nDate: January 2, 2026\nTo: devices@empresa.pt\n\nNew product announcement.\n\nApple Inc.",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Apple",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC092",
+            "subject": "Fwd: Forward Yahoo Mail",
+            "body": "----- Forwarded Message -----\nFrom: sender@yahoo.com\nTo: receiver@empresa.pt\nSent: Thursday, January 2, 2026\n\nContent from Yahoo.\n\nYahoo Inc",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Yahoo",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC093",
+            "subject": "Fwd: Entidade apenas no To",
+            "body": "---------- Forwarded message ---------\nFrom: generico@gmail.com\nTo: contacto@porsche.pt\n\nSem assinatura.\n\nObrigado",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Porsche",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC094",
+            "subject": "Fwd: Email para distribuição",
+            "body": "---------- Forwarded message ---------\nFrom: newsletter@ferrari.com\nTo: undisclosed-recipients\n\nNewsletter mensal.\n\nFerrari S.p.A.",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Ferrari",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC095",
+            "subject": "Fwd: CC múltiplo",
+            "body": "---------- Forwarded message ---------\nFrom: board@volkswagen.de\nTo: ceo@empresa.pt\nCc: cfo@empresa.pt, cto@empresa.pt\n\nReunião de administração.\n\nVolkswagen AG",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Volkswagen",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC096",
+            "subject": "Fwd: BCC (visível por forward)",
+            "body": "---------- Forwarded message ---------\nFrom: confidential@honda.jp\nTo: auto@empresa.pt\nBcc: secret@empresa.pt\n\nMensagem confidencial.\n\nHonda Motor Co.",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Honda",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC097",
+            "subject": "Fwd: Reply-To diferente",
+            "body": "---------- Forwarded message ---------\nFrom: noreply@nissan.com\nReply-To: support@nissan.com\nTo: fleet@empresa.pt\n\nContactar reply-to.\n\nNissan",
+            "from": "martimcr@gmail.com",
+            "attachments": [],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Nissan",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC098",
+            "subject": "Fwd: Inline attachment reference",
+            "body": "---------- Forwarded message ---------\nFrom: design@tesla.com\nTo: ev@empresa.pt\n\nVeja imagem: [cid:image001.jpg@01D00001.00000000]\n\nTesla Motors",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "image001.jpg"
+            ],
+            "expected": {
+                "id_projeto": "000",
+                "entidade": "Tesla",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC099",
+            "subject": "Fwd: Projeto 42 da Accenture",
+            "body": "---------- Forwarded message ---------\nFrom: consulting@accenture.com\nTo: digital@empresa.pt\n\nProjeto 42 - Transformação Digital.\n\nAccenture Portugal",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "proposta_p42.pdf",
+                "cronograma.xlsx",
+                "equipa.docx"
+            ],
+            "expected": {
+                "id_projeto": "042",
+                "entidade": "Accenture",
+                "sentido": "REC"
+            }
+        },
+        {
+            "id": "TC100",
+            "subject": "Fwd: Caso completo - todos os elementos",
+            "body": "---------- Mensagem encaminhada ---------\nDe: João Ferreira <joao.ferreira@outsystems.com>\nData: 2 de Janeiro de 2026 às 15:30\nAssunto: RE: Projeto 777 - Plataforma Low-Code\nPara: martim@empresa.pt\nCc: equipa@empresa.pt\n\nBoa tarde Martim,\n\nConforme discutido na reunião de ontem, segue em anexo:\n1. Proposta comercial (PDF)\n2. Especificações técnicas (PDF)\n3. Cronograma do projeto (Excel)\n\nAguardo feedback até final da semana.\n\nCumprimentos,\n\nJoão Ferreira\nSenior Account Executive\nOutSystems - The #1 Low-Code Platform\nTel: +351 210 000 000\nMobile: +351 910 000 000\nEmail: joao.ferreira@outsystems.com\nwww.outsystems.com\n\n---\nThis message contains confidential information.",
+            "from": "martimcr@gmail.com",
+            "attachments": [
+                "proposta_comercial.pdf",
+                "specs_tecnicas.pdf",
+                "cronograma.xlsx"
+            ],
+            "expected": {
+                "id_projeto": "777",
+                "entidade": "OutSystems",
+                "sentido": "REC"
+            }
+        }
+    ]
+}
